@@ -1,11 +1,16 @@
 import { useAuthStore } from "@/state/pinia";
-import { component } from "vue/types/umd";
 export default [
     {
         path: "/",
         name: "default",
         meta: { title: "Dashboard", authRequired: false },
         component: () => import("../views/dashboards/default"),
+    },
+    {
+        path: "/user",
+        name: "user",
+        meta: { title: "Master User", authRequired: false },
+        component: () => import("../views/user"),
     },
     {
         path: "/login",
