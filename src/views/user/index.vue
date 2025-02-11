@@ -13,8 +13,7 @@
                                 <BButton
                                     class="btn btn-primary me-1"
                                     @click="openFormModal('add', null)"
-                                >
-                                    Add User
+                                    >Add User
                                 </BButton>
                                 <BModal
                                     v-model="isOpenForm"
@@ -46,11 +45,11 @@
                                                 "
                                                 @update:croppedImageUrl="
                                                     croppedImageUrl = $event;
-                                                    formModel.foto_url = $event;
+                                                    formModel.photo = $event;
                                                 "
                                             />
                                         </BCol>
-                                        <BCol cols="12" class="" mt-4>
+                                        <BCol cols="12" class="mt-4">
                                             <BForm
                                                 class="form-horizontal"
                                                 role="form"
@@ -59,121 +58,197 @@
                                                     <label
                                                         class="col-md-2 col-form-label"
                                                         for="form-name"
+                                                        >Name</label
                                                     >
-                                                        Name
-                                                    </label>
+                                                    <BCol md="10">
+                                                        <input
+                                                            class="form-control"
+                                                            :class="{
+                                                                'is-invalid':
+                                                                    !!(
+                                                                        errorList &&
+                                                                        errorList.name
+                                                                    ),
+                                                            }"
+                                                            id="form-name"
+                                                            placeholder="Masukkan Nama"
+                                                            v-model="
+                                                                formModel.name
+                                                            "
+                                                        />
+                                                        <template
+                                                            v-if="
+                                                                !!(
+                                                                    errorList &&
+                                                                    errorList.name
+                                                                )
+                                                            "
+                                                        >
+                                                            <div
+                                                                class="invalid-feedback"
+                                                                v-for="(
+                                                                    err, index
+                                                                ) in errorList.name"
+                                                                :key="index"
+                                                            >
+                                                                <span>{{
+                                                                    err
+                                                                }}</span>
+                                                            </div>
+                                                        </template>
+                                                    </BCol>
+                                                </BRow>
+                                                <BRow class="mb-3">
+                                                    <label
+                                                        for="form-email"
+                                                        class="col-md-2 col-form-label"
+                                                        >Email</label
+                                                    >
+                                                    <BCol md="10">
+                                                        <input
+                                                            class="form-control"
+                                                            :class="{
+                                                                'is-invalid':
+                                                                    !!(
+                                                                        errorList &&
+                                                                        errorList.email
+                                                                    ),
+                                                            }"
+                                                            id="form-email"
+                                                            type="email"
+                                                            placeholder="Masukkan email"
+                                                            v-model="
+                                                                formModel.email
+                                                            "
+                                                        />
+
+                                                        <template
+                                                            v-if="
+                                                                !!(
+                                                                    errorList &&
+                                                                    errorList.email
+                                                                )
+                                                            "
+                                                        >
+                                                            <div
+                                                                class="invalid-feedback"
+                                                                v-for="(
+                                                                    err, index
+                                                                ) in errorList.email"
+                                                                :key="index"
+                                                            >
+                                                                <span>{{
+                                                                    err
+                                                                }}</span>
+                                                            </div>
+                                                        </template>
+                                                    </BCol>
+                                                </BRow>
+                                                <BRow class="mb-3">
+                                                    <label
+                                                        for="form-password"
+                                                        class="col-md-2 col-form-label"
+                                                        >Password</label
+                                                    >
+                                                    <BCol md="10">
+                                                        <input
+                                                            class="form-control"
+                                                            :class="{
+                                                                'is-invalid':
+                                                                    !!(
+                                                                        errorList &&
+                                                                        errorList.password
+                                                                    ),
+                                                            }"
+                                                            id="form-password"
+                                                            type="password"
+                                                            placeholder="Masukkan password"
+                                                            v-model="
+                                                                formModel.password
+                                                            "
+                                                        />
+
+                                                        <template
+                                                            v-if="
+                                                                !!(
+                                                                    errorList &&
+                                                                    errorList.password
+                                                                )
+                                                            "
+                                                        >
+                                                            <div
+                                                                class="invalid-feedback"
+                                                                v-for="(
+                                                                    err, index
+                                                                ) in errorList.password"
+                                                                :key="index"
+                                                            >
+                                                                <span>{{
+                                                                    err
+                                                                }}</span>
+                                                            </div>
+                                                        </template>
+                                                    </BCol>
+                                                </BRow>
+                                                <BRow class="mb-3">
+                                                    <label
+                                                        for="form-role"
+                                                        class="col-md-2 col-form-label"
+                                                        >Role</label
+                                                    >
+                                                    <BCol md="10">
+                                                        <select
+                                                            id="form-role"
+                                                            class="form-select"
+                                                            :class="{
+                                                                'is-invalid':
+                                                                    !!(
+                                                                        errorList &&
+                                                                        errorList.m_user_roles_id
+                                                                    ),
+                                                            }"
+                                                            v-model="
+                                                                formModel.m_user_roles_id
+                                                            "
+                                                        >
+                                                            <option
+                                                                value=""
+                                                                disabled
+                                                            >
+                                                                Pilih Role
+                                                            </option>
+                                                            <option
+                                                                v-for="role in roles"
+                                                                :key="role.id"
+                                                                :value="role.id"
+                                                            >
+                                                                {{ role.name }}
+                                                            </option>
+                                                        </select>
+
+                                                        <template
+                                                            v-if="
+                                                                !!(
+                                                                    errorList &&
+                                                                    errorList.m_user_roles_id
+                                                                )
+                                                            "
+                                                        >
+                                                            <div
+                                                                class="invalid-feedback"
+                                                                v-for="(
+                                                                    err, index
+                                                                ) in errorList.m_user_roles_id"
+                                                                :key="index"
+                                                            >
+                                                                <span>{{
+                                                                    err
+                                                                }}</span>
+                                                            </div>
+                                                        </template>
+                                                    </BCol>
                                                 </BRow>
                                             </BForm>
-                                        </BCol>
-                                        <BCol md="10">
-                                            <input
-                                                class="form-control"
-                                                :class="{
-                                                    'is-invalid': !!(
-                                                        errorList &&
-                                                        errorList.name
-                                                    ),
-                                                }"
-                                                id="form-name"
-                                                placeholder="Masukkan Nama"
-                                                v-model="formModel.name"
-                                            />
-                                            <template
-                                                v-if="
-                                                    !!(
-                                                        errorList &&
-                                                        errorList.name
-                                                    )
-                                                "
-                                            >
-                                                <div
-                                                    class="invalid-feedback"
-                                                    v-for="(
-                                                        err, index
-                                                    ) in errorList.name"
-                                                    :key="index"
-                                                >
-                                                    <span>{{ err }}</span>
-                                                </div>
-                                            </template>
-                                        </BCol>
-                                    </BRow>
-                                    <BRow class="mb-3">
-                                        <label
-                                            for="form-email"
-                                            class="col-md-2 col-form-label"
-                                        >
-                                            Email
-                                        </label>
-                                        <BCol md="10">
-                                            <input
-                                                class="form-control"
-                                                :class="{
-                                                    'is-invalid': !!(
-                                                        errorList &&
-                                                        errorList.email
-                                                    ),
-                                                }"
-                                                id="form-email"
-                                                type="email"
-                                                placeholder="Masukkan email"
-                                                v-model="formModel.email"
-                                            />
-                                            <template
-                                                v-if="
-                                                    !!errorList &&
-                                                    errorList.email
-                                                "
-                                            >
-                                                <div
-                                                    class="invalid-feedback"
-                                                    v-for="(
-                                                        err, index
-                                                    ) in errorList.email"
-                                                    :key="index"
-                                                >
-                                                    <span>{{ err }}</span>
-                                                </div>
-                                            </template>
-                                        </BCol>
-                                    </BRow>
-                                    <BRow class="mb-3">
-                                        <label
-                                            for="form-password"
-                                            class="col-md-2 col-form-label"
-                                        >
-                                            Password
-                                        </label>
-                                        <BCol md="10">
-                                            <input
-                                                class="form-control"
-                                                :class="{
-                                                    'is-invalid': !!(
-                                                        errorList &&
-                                                        errorList.password
-                                                    ),
-                                                }"
-                                                id="form-password"
-                                                type="password"
-                                                placeholder="Masukkan password"
-                                                v-model="formModel.pasword"
-                                            />
-                                            <template
-                                                v-if="
-                                                    !!errorList &&
-                                                    errorList.password
-                                                "
-                                            >
-                                                <div
-                                                    class="invalid-feedback"
-                                                    v-for="(
-                                                        err, index
-                                                    ) in errorList.password"
-                                                    :key="index"
-                                                >
-                                                    <span>{{ err }}</span>
-                                                </div>
-                                            </template>
                                         </BCol>
                                     </BRow>
                                 </BModal>
@@ -181,12 +256,12 @@
                                     href="#!"
                                     class="btn btn-light me-1"
                                     @click="getUsers"
-                                >
-                                    <i class="mdi mdi-refresh"></i>
-                                </BLink>
+                                    ><i class="mdi mdi-refresh"></i
+                                ></BLink>
                             </div>
                         </div>
                     </BCardBody>
+
                     <BCardBody class="border-bottom">
                         <BRow class="g-3">
                             <BCol xxl="10" lg="8">
@@ -197,6 +272,7 @@
                                     v-model="userStore.searchQuery"
                                 />
                             </BCol>
+
                             <BCol xxl="2" lg="4">
                                 <BButton
                                     variant="soft-secondary"
@@ -209,6 +285,7 @@
                             </BCol>
                         </BRow>
                     </BCardBody>
+
                     <BCardBody>
                         <div class="table-responsive">
                             <BTableSimple
@@ -222,6 +299,7 @@
                                         <BTh scope="col"></BTh>
                                     </BTr>
                                 </BThead>
+
                                 <BTbody>
                                     <BTr v-for="user in rows" :key="user.id">
                                         <BTd> {{ user.name }} </BTd>
@@ -245,8 +323,8 @@
                                                         class="btn btn-sm btn-soft-info"
                                                         ><i
                                                             class="mdi mdi-pencil-outline"
-                                                        ></i
-                                                    ></BButton>
+                                                        ></i>
+                                                    </BButton>
                                                 </li>
                                                 <li
                                                     data-bs-toggle="tooltip"
@@ -257,10 +335,11 @@
                                                     <BButton
                                                         data-bs-toggle="modal"
                                                         class="btn btn-sm btn-soft-danger"
-                                                        ><i
+                                                    >
+                                                        <i
                                                             class="mdi mdi-delete-outline"
-                                                        ></i
-                                                    ></BButton>
+                                                        ></i>
+                                                    </BButton>
                                                 </li>
                                             </ul>
                                         </BTd>
@@ -268,6 +347,7 @@
                                 </BTbody>
                             </BTableSimple>
                         </div>
+
                         <Pagination
                             :currentPage="userStore.current"
                             :totalRows="userStore.totalData"
@@ -287,7 +367,8 @@ import Layout from "../../layouts/main";
 import PageHeader from "@/components/page-header";
 import Pagination from "@/components/widgets/pagination";
 import { useUserStore } from "@/state/pinia";
-import { useProgress } from "@/helpers/progress";
+import { useProgress } from "@/helpers/progress"; // Import custom progress function
+
 const { startProgress, finishProgress, failProgress } = useProgress();
 import ImageCropper from "@/components/widgets/cropper";
 import {
@@ -295,6 +376,8 @@ import {
     showErrorToast,
     showDeleteConfirmationDialog,
 } from "@/helpers/alert.js";
+
+// import useVuelidate from "@vuelidate/core";
 
 var roles = ref([]);
 var rows = ref([]);
@@ -356,10 +439,10 @@ const openFormModal = (mode, id = null) => {
             formModel.id = user.id;
             formModel.name = user.name;
             formModel.email = user.email;
-            formModel.password = "";
+            formModel.password = user.password;
             formModel.photo = user.photo;
             formModel.m_user_roles_id = user.m_user_roles_id;
-            modalTitle.value = "Ubah User";
+            modalTitle.value = "Update User";
 
             imageUrl.value = user.photo || "";
             croppedImageUrl.value = "";
@@ -371,7 +454,7 @@ const openFormModal = (mode, id = null) => {
         formModel.password = "";
         formModel.photo = "";
         formModel.m_user_roles_id = "";
-        modalTitle.value = "Tambah User";
+        modalTitle.value = "Add User";
 
         imageUrl.value = "";
         croppedImageUrl.value = "";
@@ -387,13 +470,13 @@ const saveUser = async () => {
         console.log("Form Data:", formModel);
 
         if (formModel.id) {
-            await userStore.updateUser(formModel);
+            await userStore.updateUser(formModel.id, formModel);
             if (statusCode.value != 200) {
-                showErrorToast("Failed to add user", errorMessage.value);
+                showErrorToast("Failed to update user", errorMessage.value);
             } else {
                 isOpenForm.value = false;
                 await getUsers();
-                showSuccessToast("User Edited successfully!");
+                showSuccessToast("User updated successfully!");
             }
         } else {
             await userStore.addUsers(formModel);
@@ -417,10 +500,10 @@ const deleteUser = async (id) => {
     if (confirmed) {
         try {
             await userStore.deleteUser(id);
-            showSuccessToast("User berhasil dihapus");
+            showSuccessToast("User deleted successfully!");
             await getUsers();
         } catch (error) {
-            showErrorToast("Terjadi kesalahan saat menghapus user");
+            showErrorToast("Failed to deleted user");
         }
     }
 };

@@ -3,30 +3,23 @@ export const menuItems = [
         id: 1,
         label: "Dashboard",
         icon: "bx-home-circle",
-        subItems: [
-            {
-                id: 2,
-                label: "Default",
-                link: "/",
-                parentId: 1,
-            },
-        ],
+        link: "/",
     },
     {
-        id: 3,
+        id: 2,
         label: "Menu",
         isTitle: true,
     },
     {
-        id: 4,
+        id: 3,
         label: "CRUD",
-        icon: "bx-shield-alt-2",
+        icon: "bx-user-plus",
         subItems: [
             {
-                id: 5,
+                id: 4,
                 label: "User",
                 link: "/user",
-                parentId: 4,
+                parentId: 3,
             },
         ],
     },

@@ -1,8 +1,9 @@
 import { defineStore } from "pinia";
 import axios from "axios";
+
 export const useUserStore = defineStore("user", {
     state: () => ({
-        apiUrl: process.env.VUE_APP_APIURL,
+        apiUrl: process.env.VUE_APP_APIURL || "http://127.0.0.1:8000",
         users: [],
         roles: [],
         user: null,
@@ -18,8 +19,8 @@ export const useUserStore = defineStore("user", {
         },
         totalData: 0,
         current: 1,
-        perpage: 5,
-        searchQuery: "",
+        perPage: 5,
+        searchQuery: 0,
     }),
     actions: {
         openForm(newAction, user) {
@@ -28,11 +29,11 @@ export const useUserStore = defineStore("user", {
         },
         async getUsers() {
             try {
-                const url = `${this.apiUrl}/users?page=${this.current}&per_page=${this.perpage}&name=${this.searchQuery}`;
+                const url = `${this.apiUrl}/api/v1/users?page=${this.current}&per_page=${this.perPage}&name=${this.searchQuery}`;
                 const res = await axios.get(url);
-                const usersDataList = res.data.data.list;
+                const usersDataList = res.data.data;
                 this.users = usersDataList;
-                this.totalData = res.data.data.meta.total;
+                this.totalData = res.data.meta.total;
             } catch (error) {
                 this.response = {
                     status: error.response?.status,
@@ -42,9 +43,9 @@ export const useUserStore = defineStore("user", {
         },
         async getRoles() {
             try {
-                const url = `${this.apiUrl}/roles`;
+                const url = `${this.apiUrl}/api/v1/roles`;
                 const res = await axios.get(url);
-                const rolesDataList = res.data.data.list;
+                const rolesDataList = res.data.data;
                 this.roles = rolesDataList;
             } catch (error) {
                 this.response = {
@@ -53,6 +54,7 @@ export const useUserStore = defineStore("user", {
                 };
             }
         },
+
         async changePage(newPage) {
             this.current = newPage;
             await this.getUsers();
@@ -64,11 +66,15 @@ export const useUserStore = defineStore("user", {
         },
         async addUsers(users) {
             try {
-                const res = await axios.post(`${this.apiUrl}/users`, users, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
+                const res = await axios.post(
+                    `${this.apiUrl}/api/v1/users`,
+                    users,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
                 this.response = {
                     status: res.status,
                     message: res.data.message,
@@ -77,40 +83,42 @@ export const useUserStore = defineStore("user", {
                 this.response = {
                     status: error.response?.status,
                     message: error.message,
-                    list: error.response?.data.errors,
+                    list: error.response.data.errors,
                 };
             } finally {
-                this.getUsers();
+                await this.getUsers();
             }
         },
-        async deteleUser(id) {
+        async deleteUser(id) {
             this.loading = true;
             try {
-                await axios.delete(`${this.apiUrl}/users/${id}`);
+                await axios.delete(`${this.apiUrl}/api/v1/users/${id}`);
                 this.response = {
-                    status: 200,
+                    status: "200",
                 };
             } catch (error) {
                 this.response = {
                     status: error.response?.status,
                     message: error.message,
-                    list: error.response?.data.errors,
+                    list: error.response.data.errors,
                 };
             } finally {
                 this.getUsers();
             }
         },
-        async updateUser(users) {
+        async updateUser(id, users) {
             try {
-                await axios.post(`${this.apiUrl}/users/`, users, {
+                await axios.put(`${this.apiUrl}/api/v1/users/${id}`, users, {
                     headers: {
                         "Content-Type": "application/json",
                     },
                 });
                 this.response = {
-                    status: "200",
+                    status: 200,
+                    message: "User updated successfully",
                 };
             } catch (error) {
+                console.error("Error Response:", error.response);
                 this.response = {
                     status: error.status,
                     message: error.message,
