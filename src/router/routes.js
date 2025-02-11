@@ -19,6 +19,12 @@ export default [
         component: () => import("../views/customer"),
     },
     {
+        path: "/product-category",
+        name: "product-category",
+        meta: { title: "Master Product Category", authRequired: false },
+        component: () => import("../views/product-category"),
+    },
+    {
         path: "/login",
         name: "login",
         component: () => import("../views/account/login"),
