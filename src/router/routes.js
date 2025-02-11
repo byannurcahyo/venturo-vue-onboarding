@@ -13,6 +13,12 @@ export default [
         component: () => import("../views/user"),
     },
     {
+        path: "/customer",
+        name: "customer",
+        meta: { title: "Master Customer", authRequired: false },
+        component: () => import("../views/customer"),
+    },
+    {
         path: "/login",
         name: "login",
         component: () => import("../views/account/login"),

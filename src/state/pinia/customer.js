@@ -1,12 +1,11 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
-export const useUserStore = defineStore("user", {
+export const useCustomerStore = defineStore("customer", {
     state: () => ({
         apiUrl: process.env.VUE_APP_APIURL || "http://127.0.0.1:8000",
-        users: [],
-        roles: [],
-        user: null,
+        customers: [],
+        customer: null,
         response: {
             status: null,
             message: null,
@@ -22,31 +21,19 @@ export const useUserStore = defineStore("user", {
         perPage: 5,
         searchQuery: "",
     }),
+
     actions: {
-        openForm(newAction, user) {
+        openForm(newAction, customer) {
             this.modalAction.action = newAction;
-            this.user = user;
+            this.customer = customer;
         },
-        async getUsers() {
+        async getCustomers() {
             try {
-                const url = `${this.apiUrl}/api/v1/users?page=${this.current}&per_page=${this.perPage}&name=${this.searchQuery}`;
+                const url = `${this.apiUrl}/api/v1/customers?page=${this.current}&per_page=${this.perpage}&name=${this.searchQuery}`;
                 const res = await axios.get(url);
-                const usersDataList = res.data.data;
-                this.users = usersDataList;
+                const customersDataList = res.data.data;
+                this.customers = customersDataList;
                 this.totalData = res.data.meta.total;
-            } catch (error) {
-                this.response = {
-                    status: error.response?.status,
-                    message: error.message,
-                };
-            }
-        },
-        async getRoles() {
-            try {
-                const url = `${this.apiUrl}/api/v1/roles`;
-                const res = await axios.get(url);
-                const rolesDataList = res.data.data;
-                this.roles = rolesDataList;
             } catch (error) {
                 this.response = {
                     status: error.response?.status,
@@ -57,18 +44,18 @@ export const useUserStore = defineStore("user", {
 
         async changePage(newPage) {
             this.current = newPage;
-            await this.getUsers();
+            await this.getCustomers();
         },
-        async searchUsers(query) {
+        async searchCustomer(query) {
             this.searchQuery = query;
             this.current = 1;
-            await this.getUsers();
+            await this.getCustomers();
         },
-        async addUsers(users) {
+        async addCustomer(customers) {
             try {
                 const res = await axios.post(
-                    `${this.apiUrl}/api/v1/users`,
-                    users,
+                    `${this.apiUrl}/api/v1/customers`,
+                    customers,
                     {
                         headers: {
                             "Content-Type": "application/json",
@@ -86,13 +73,13 @@ export const useUserStore = defineStore("user", {
                     list: error.response.data.errors,
                 };
             } finally {
-                await this.getUsers();
+                await this.getCustomers();
             }
         },
-        async deleteUser(id) {
+        async deleteCustomer(id) {
             this.loading = true;
             try {
-                await axios.delete(`${this.apiUrl}/api/v1/users/${id}`);
+                await axios.delete(`${this.apiUrl}/api/v1/customers/${id}`);
                 this.response = {
                     status: "200",
                 };
@@ -103,19 +90,23 @@ export const useUserStore = defineStore("user", {
                     list: error.response.data.errors,
                 };
             } finally {
-                this.getUsers();
+                this.getCustomers();
             }
         },
-        async updateUser(id, users) {
+        async updateCustomer(id, customers) {
             try {
-                await axios.put(`${this.apiUrl}/api/v1/users/${id}`, users, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
+                await axios.put(
+                    `${this.apiUrl}/api/v1/customers/${id}`,
+                    customers,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
                 this.response = {
                     status: 200,
-                    message: "User updated successfully",
+                    message: "Customer updated successfully",
                 };
             } catch (error) {
                 console.error("Error Response:", error.response);
@@ -126,9 +117,8 @@ export const useUserStore = defineStore("user", {
             }
         },
         resetState() {
-            this.users = [];
-            this.roles = [];
-            this.user = null;
+            this.customers = [];
+            this.customer = null;
             this.response = {
                 status: null,
                 message: null,

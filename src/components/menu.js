@@ -21,6 +21,12 @@ export const menuItems = [
                 link: "/user",
                 parentId: 3,
             },
+            {
+                id: 5,
+                label: "Customer",
+                link: "/customer",
+                parentId: 3,
+            },
         ],
     },
 ];

@@ -1,19 +1,19 @@
 <template>
     <Layout>
-        <PageHeader title="Users List" pageTitle="Users" />
+        <PageHeader title="Customers List" pageTitle="Customers" />
         <BRow>
             <BCol lg="12">
                 <BCard no-body>
                     <BCardBody class="border-bottom">
                         <div class="d-flex align-items-center">
                             <BCardTitle class="mb-0 flex-grow-1"
-                                >User List</BCardTitle
+                                >Customer List</BCardTitle
                             >
                             <div class="flex-shrink-0">
                                 <BButton
                                     class="btn btn-primary me-1"
                                     @click="openFormModal('add', null)"
-                                    >Add User
+                                    >Add Customer
                                 </BButton>
                                 <BModal
                                     v-model="isOpenForm"
@@ -21,25 +21,25 @@
                                     id="modal-standard"
                                     :title="modalTitle"
                                     title-class="font-18"
-                                    ok-title="Simpan"
-                                    @ok="saveUser"
+                                    ok-title="Save"
+                                    @ok="saveCustomer"
                                     @hide.prevent
                                     @cancel="
                                         isOpenForm = false;
-                                        userStore.resetState();
-                                        getUsers();
+                                        customerStore.resetState();
+                                        getCustomers();
                                     "
                                     @close="
                                         isOpenForm = false;
-                                        userStore.resetState();
-                                        getUsers();
+                                        customerStore.resetState();
+                                        getCustomers();
                                     "
                                 >
                                     <BRow>
                                         <BCol cols="12">
                                             <ImageCropper
                                                 :aspectRatio="1 / 1"
-                                                :uploadText="'Letakkan foto disini atau klik untuk mengunggah'"
+                                                :uploadText="'Drop photo here or click to upload'"
                                                 @update:imageUrl="
                                                     imageUrl = $event
                                                 "
@@ -71,11 +71,12 @@
                                                                     ),
                                                             }"
                                                             id="form-name"
-                                                            placeholder="Masukkan Nama"
+                                                            placeholder="Enter Name"
                                                             v-model="
                                                                 formModel.name
                                                             "
                                                         />
+
                                                         <template
                                                             v-if="
                                                                 !!(
@@ -100,8 +101,8 @@
                                                 </BRow>
                                                 <BRow class="mb-3">
                                                     <label
-                                                        for="form-email"
                                                         class="col-md-2 col-form-label"
+                                                        for="form-email"
                                                         >Email</label
                                                     >
                                                     <BCol md="10">
@@ -116,7 +117,7 @@
                                                             }"
                                                             id="form-email"
                                                             type="email"
-                                                            placeholder="Masukkan email"
+                                                            placeholder="Enter Email"
                                                             v-model="
                                                                 formModel.email
                                                             "
@@ -146,8 +147,8 @@
                                                 </BRow>
                                                 <BRow class="mb-3">
                                                     <label
-                                                        for="form-password"
                                                         class="col-md-2 col-form-label"
+                                                        for="form-password"
                                                         >Password</label
                                                     >
                                                     <BCol md="10">
@@ -162,7 +163,7 @@
                                                             }"
                                                             id="form-password"
                                                             type="password"
-                                                            placeholder="Masukkan password"
+                                                            placeholder="Enter Password"
                                                             v-model="
                                                                 formModel.password
                                                             "
@@ -192,45 +193,33 @@
                                                 </BRow>
                                                 <BRow class="mb-3">
                                                     <label
-                                                        for="form-role"
+                                                        for="form-phone"
                                                         class="col-md-2 col-form-label"
-                                                        >Role</label
+                                                        >Phone</label
                                                     >
                                                     <BCol md="10">
-                                                        <select
-                                                            id="form-role"
-                                                            class="form-select"
+                                                        <input
+                                                            class="form-control"
                                                             :class="{
                                                                 'is-invalid':
                                                                     !!(
                                                                         errorList &&
-                                                                        errorList.m_user_roles_id
+                                                                        errorList.phone
                                                                     ),
                                                             }"
+                                                            id="form-phone"
+                                                            type="text"
+                                                            placeholder="Enter Phone"
                                                             v-model="
-                                                                formModel.m_user_roles_id
+                                                                formModel.phone
                                                             "
-                                                        >
-                                                            <option
-                                                                value=""
-                                                                disabled
-                                                            >
-                                                                Pilih Role
-                                                            </option>
-                                                            <option
-                                                                v-for="role in roles"
-                                                                :key="role.id"
-                                                                :value="role.id"
-                                                            >
-                                                                {{ role.name }}
-                                                            </option>
-                                                        </select>
+                                                        />
 
                                                         <template
                                                             v-if="
                                                                 !!(
                                                                     errorList &&
-                                                                    errorList.m_user_roles_id
+                                                                    errorList.phone
                                                                 )
                                                             "
                                                         >
@@ -238,7 +227,7 @@
                                                                 class="invalid-feedback"
                                                                 v-for="(
                                                                     err, index
-                                                                ) in errorList.m_user_roles_id"
+                                                                ) in errorList.phone"
                                                                 :key="index"
                                                             >
                                                                 <span>{{
@@ -251,11 +240,51 @@
                                             </BForm>
                                         </BCol>
                                     </BRow>
+                                    <BRow class="mb-3">
+                                        <label
+                                            class="col-md-2 col-form-label"
+                                            for="form-address"
+                                            >Address</label
+                                        >
+                                        <BCol md="10">
+                                            <textarea
+                                                class="form-control"
+                                                :class="{
+                                                    'is-invalid': !!(
+                                                        errorList &&
+                                                        errorList.address
+                                                    ),
+                                                }"
+                                                id="form-address"
+                                                placeholder="Enter Address"
+                                                v-model="formModel.address"
+                                            ></textarea>
+
+                                            <template
+                                                v-if="
+                                                    !!(
+                                                        errorList &&
+                                                        errorList.address
+                                                    )
+                                                "
+                                            >
+                                                <div
+                                                    class="invalid-feedback"
+                                                    v-for="(
+                                                        err, index
+                                                    ) in errorList.address"
+                                                    :key="index"
+                                                >
+                                                    <span>{{ err }}</span>
+                                                </div>
+                                            </template>
+                                        </BCol>
+                                    </BRow>
                                 </BModal>
                                 <BLink
                                     href="#!"
                                     class="btn btn-light me-1"
-                                    @click="getUsers"
+                                    @click="getCustomers"
                                     ><i class="mdi mdi-refresh"></i
                                 ></BLink>
                             </div>
@@ -269,7 +298,7 @@
                                     type="text"
                                     class="form-control search"
                                     placeholder="Search for ..."
-                                    v-model="userStore.searchQuery"
+                                    v-model="customerStore.searchQuery"
                                 />
                             </BCol>
 
@@ -280,7 +309,7 @@
                                     class="w-100"
                                 >
                                     <i class="mdi mdi-magnify align-middle"></i>
-                                    Cari
+                                    Search
                                 </BButton>
                             </BCol>
                         </BRow>
@@ -290,20 +319,25 @@
                         <div class="table-responsive">
                             <BTableSimple
                                 class="align-middle dt-responsive nowrap w-100 table-check"
-                                id="user-list"
+                                id="customer-list"
                             >
                                 <BThead>
                                     <BTr>
                                         <BTh scope="col">Name</BTh>
-                                        <BTh scope="col">Email</BTh>
+                                        <BTh scope="col">Address</BTh>
+                                        <BTh scope="col">Phone</BTh>
                                         <BTh scope="col"></BTh>
                                     </BTr>
                                 </BThead>
 
                                 <BTbody>
-                                    <BTr v-for="user in rows" :key="user.id">
-                                        <BTd> {{ user.name }} </BTd>
-                                        <BTd> {{ user.email }} </BTd>
+                                    <BTr
+                                        v-for="customer in rows"
+                                        :key="customer.id"
+                                    >
+                                        <BTd> {{ customer.name }} </BTd>
+                                        <BTd> {{ customer.address }} </BTd>
+                                        <BTd> {{ customer.phone }} </BTd>
                                         <BTd>
                                             <ul
                                                 class="list-unstyled hstack gap-1 mb-0 justify-content-end"
@@ -315,7 +349,7 @@
                                                     @click="
                                                         openFormModal(
                                                             'edit',
-                                                            user.id
+                                                            customer.id
                                                         )
                                                     "
                                                 >
@@ -330,7 +364,11 @@
                                                     data-bs-toggle="tooltip"
                                                     data-bs-placement="top"
                                                     aria-label="Delete"
-                                                    @click="deleteUser(user.id)"
+                                                    @click="
+                                                        deleteCustomer(
+                                                            customer.id
+                                                        )
+                                                    "
                                                 >
                                                     <BButton
                                                         data-bs-toggle="modal"
@@ -349,9 +387,9 @@
                         </div>
 
                         <Pagination
-                            :currentPage="userStore.current"
-                            :totalRows="userStore.totalData"
-                            :perPage="userStore.perpage"
+                            :currentPage="customerStore.current"
+                            :totalRows="customerStore.totalData"
+                            :perPage="customerStore.perpage"
                             @update:currentPage="updatePage"
                         />
                     </BCardBody>
@@ -366,7 +404,7 @@ import { ref, onMounted, reactive, computed } from "vue";
 import Layout from "../../layouts/main";
 import PageHeader from "@/components/page-header";
 import Pagination from "@/components/widgets/pagination";
-import { useUserStore } from "@/state/pinia";
+import { useCustomerStore } from "@/state/pinia";
 import { useProgress } from "@/helpers/progress";
 
 const { startProgress, finishProgress, failProgress } = useProgress();
@@ -377,44 +415,31 @@ import {
     showDeleteConfirmationDialog,
 } from "@/helpers/alert.js";
 
-const roles = ref([]);
 const rows = ref([]);
 const isOpenForm = ref(false);
 const modalTitle = ref(false);
-const userStore = useUserStore();
+const customerStore = useCustomerStore();
 
-const getUsers = async () => {
+const getCustomers = async () => {
     startProgress();
-    await userStore.getUsers();
-    if (userStore.users) {
+    await customerStore.getCustomers();
+    if (customerStore.customers) {
         finishProgress();
-        rows.value = userStore.users || [];
+        rows.value = customerStore.customers || [];
     } else {
         failProgress();
         rows.value = [];
     }
 };
 
-const getRoles = async () => {
-    startProgress();
-    await userStore.getRoles();
-    if (userStore.roles) {
-        finishProgress();
-        roles.value = userStore.roles || [];
-    } else {
-        failProgress();
-        roles.value = [];
-    }
-};
-
 const updatePage = async (page) => {
-    await userStore.changePage(page);
-    await getUsers();
+    await customerStore.changePage(page);
+    await getCustomers();
 };
 
 const searchData = async () => {
-    await userStore.changePage(1);
-    await getUsers();
+    await customerStore.changePage(1);
+    await getCustomers();
 };
 
 const imageUrl = ref("");
@@ -423,91 +448,96 @@ const croppedImageUrl = ref("");
 const formModel = reactive({
     id: "",
     name: "",
+    address: "",
+    photo: "",
+    phone: "",
     email: "",
     password: "",
-    photo: "",
-    m_user_roles_id: "",
+    m_user_id: "",
 });
 
 const openFormModal = (mode, id = null) => {
     isOpenForm.value = true;
     if (mode === "edit" && id) {
-        const user = rows.value.find((user) => user.id === id);
-        if (user) {
-            formModel.id = user.id;
-            formModel.name = user.name;
-            formModel.email = user.email;
-            formModel.password = user.password;
-            formModel.photo = user.photo;
-            formModel.m_user_roles_id = user.m_user_roles_id;
-            modalTitle.value = "Update User";
+        const customer = rows.value.find((customer) => customer.id === id);
+        if (customer) {
+            formModel.id = customer.id;
+            formModel.name = customer.name;
+            formModel.address = customer.address;
+            formModel.photo = customer.photo;
+            formModel.phone = customer.phone;
+            formModel.email = customer.email;
+            formModel.m_user_id = customer.m_user_id;
+            formModel.password = customer.password;
+            modalTitle.value = "Update Customer";
 
-            imageUrl.value = user.photo || "";
+            imageUrl.value = customer.photo || "";
             croppedImageUrl.value = "";
         }
     } else {
         formModel.id = "";
         formModel.name = "";
+        formModel.address = "";
+        formModel.photo = "";
+        formModel.phone = "";
         formModel.email = "";
         formModel.password = "";
-        formModel.photo = "";
-        formModel.m_user_roles_id = "";
-        modalTitle.value = "Add User";
+        formModel.m_user_id = "";
+        modalTitle.value = "Add Customer";
 
         imageUrl.value = "";
         croppedImageUrl.value = "";
     }
 };
 
-const statusCode = computed(() => userStore.response.status);
-const errorList = computed(() => userStore.response?.list || {});
-const errorMessage = computed(() => userStore.response?.message || "");
+const statusCode = computed(() => customerStore.response.status);
+const errorList = computed(() => customerStore.response?.list || {});
+const errorMessage = computed(() => customerStore.response?.message || "");
 
-const saveUser = async () => {
+const saveCustomer = async () => {
     try {
         console.log("Form Data:", formModel);
 
         if (formModel.id) {
-            await userStore.updateUser(formModel.id, formModel);
+            await customerStore.updateCustomer(formModel.id, formModel);
             if (statusCode.value != 200) {
-                showErrorToast("Failed to update user", errorMessage.value);
+                showErrorToast("Failed to update customer", errorMessage.value);
             } else {
                 isOpenForm.value = false;
-                await getUsers();
-                showSuccessToast("User updated successfully!");
+                await getCustomers();
+                showSuccessToast("Customer updated successfully!");
             }
         } else {
-            await userStore.addUsers(formModel);
+            await customerStore.addCustomer(formModel);
 
             if (statusCode.value != 200) {
-                showErrorToast("Failed to add user", errorMessage.value);
+                showErrorToast("Failed to add customer", errorMessage.value);
             } else {
                 isOpenForm.value = false;
-                await getUsers();
-                showSuccessToast("User added successfully!");
+                await getCustomers();
+                showSuccessToast("Customer added successfully!");
             }
         }
     } catch (error) {
         console.error(error);
-        showErrorToast("Failed to add user", errorMessage.value);
+        showErrorToast("Failed to add customer", errorMessage.value);
     }
 };
-const deleteUser = async (id) => {
+const deleteCustomer = async (id) => {
     const confirmed = await showDeleteConfirmationDialog();
 
     if (confirmed) {
         try {
-            await userStore.deleteUser(id);
-            showSuccessToast("User deleted successfully!");
-            await getUsers();
+            await customerStore.deleteCustomer(id);
+            showSuccessToast("Customer deleted successfully");
+            await getCustomers();
         } catch (error) {
-            showErrorToast("Failed to deleted user");
+            showErrorToast("Failed to delete customer", errorMessage.value);
         }
     }
 };
 
 onMounted(async () => {
-    await getUsers();
-    await getRoles();
+    await getCustomers();
 });
 </script>
