@@ -33,6 +33,12 @@ export const menuItems = [
                 link: "/product-category",
                 parentId: 3,
             },
+            {
+                id: 7,
+                label: "Product",
+                link: "/product",
+                parentId: 3,
+            },
         ],
     },
 ];
