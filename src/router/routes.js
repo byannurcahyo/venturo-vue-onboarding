@@ -37,6 +37,12 @@ export default [
         component: () => import("../views/product/form.vue"),
     },
     {
+        path: "/transaksi",
+        name: "transaksi",
+        meta: { title: "Master Transaksi", authRequired: false },
+        component: () => import("../views/transaksi"),
+    },
+    {
         path: "/login",
         name: "login",
         component: () => import("../views/account/login"),

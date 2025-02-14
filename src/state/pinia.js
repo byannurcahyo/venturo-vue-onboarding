@@ -4,6 +4,7 @@ import { useUserStore } from "./pinia/user";
 import { useCustomerStore } from "./pinia/customer";
 import { useProductCategoryStore } from "./pinia/product-category";
 import { useProductStore } from "./pinia/product";
+import { useSalesStore } from "./pinia/transaksi";
 import { createPinia } from "pinia";
 
 const pinia = createPinia();
@@ -16,4 +17,5 @@ export {
     useCustomerStore,
     useProductCategoryStore,
     useProductStore,
+    useSalesStore,
 };
