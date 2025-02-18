@@ -50,23 +50,12 @@ export const useSalesStore = defineStore("sale", {
                 page: this.current,
                 per_page: this.perPage,
             });
-
-            console.log(
-                "API PARAMS : ",
-                this.dateFrom,
-                this.dateTo,
-                this.customerId,
-                this.productId
-            );
-
             if (this.customerId.length)
                 params.append("customer_id", this.customerId.join(","));
             if (this.productId.length)
                 params.append("menu_id", this.productId.join(","));
-
             if (this.dateFrom) params.append("date_from", this.dateFrom);
             if (this.dateTo) params.append("date_to", this.dateTo);
-
             try {
                 const { data } = await axios.get(
                     `${this.apiUrl}/api/v1/sales`,
@@ -96,13 +85,9 @@ export const useSalesStore = defineStore("sale", {
         },
 
         async searchProduct(query) {
-            try {
-                const response = await axios.get(`/api/products?search=${query}`);
-                this.products = response.data;
-            } catch (error) {
-                console.error("Failed to fetch products:", error);
-                this.products = [];
-            }
+            this.searchQuery = query;
+            this.current = 1;
+            await this.getProducts();
         },
 
         resetState() {

@@ -30,8 +30,6 @@
                             </div>
                         </template>
                     </BCol>
-
-                    <!-- Search bar -->
                     <BCol md="8">
                         <BInputGroup>
                             <BFormInput
@@ -46,6 +44,12 @@
                                 >
                                     <i class="mdi mdi-magnify"></i>
                                 </BButton>
+                                <BButton
+                                    variant="btn btn-light me-1"
+                                    @click="refresh"
+                                >
+                                    <i class="mdi mdi-refresh"></i>
+                                </BButton>
                             </BInputGroupAppend>
                         </BInputGroup>
                     </BCol>
@@ -55,7 +59,6 @@
                     style="border-top: 5px solid var(--bs-primary)"
                 >
                     <BCardBody>
-                        <!-- Product grid -->
                         <BRow>
                             <BCol
                                 lg="4"
@@ -88,8 +91,6 @@
                     </BCardBody>
                 </BCard>
             </BCol>
-
-            <!-- Sidebar (order detail) -->
             <BCol lg="5">
                 <BCard class="shadow-sm">
                     <BCardBody>
@@ -97,8 +98,6 @@
                         <p class="mb-3 fw-bolder fs-2 text-primary">
                             {{ selectedCustomerName }}
                         </p>
-
-                        <!-- Order list -->
                         <div
                             v-for="order in orders"
                             :key="order.id"
@@ -138,8 +137,6 @@
                                 <i class="mdi mdi-plus"></i>
                             </BButton>
                         </div>
-
-                        <!-- Detail order -->
                         <div class="payment-summary">
                             <div class="d-flex justify-content-between">
                                 <span>Subtotal</span>
@@ -171,34 +168,22 @@
 </template>
 
 <script setup>
-import Layout from "../../layouts/main";
-import { BButton } from "bootstrap-vue-next";
 import { ref, computed, onMounted, reactive } from "vue";
-
-import { showSuccessToast, showErrorToast } from "@/helpers/alert.js";
-import { useProgress } from "@/helpers/progress";
 import {
     useProductStore,
     useCustomerStore,
     useSalesStore,
 } from "../../state/pinia";
+import { useProgress } from "@/helpers/progress";
+import { BButton } from "bootstrap-vue-next";
+import { showSuccessToast, showErrorToast } from "@/helpers/alert.js";
+import Layout from "../../layouts/main";
 
 const { startProgress, finishProgress, failProgress } = useProgress();
-const orders = ref([]);
-
-const formModel = reactive({
-    m_customer_id: "",
-    product_detail: [],
-});
-
 const productStore = useProductStore();
 const customerStore = useCustomerStore();
 const salesStore = useSalesStore();
-
-const rowsProduct = ref([]);
-const rowsCustomer = ref([]);
-const selectedCustomerName = ref("");
-
+const orders = ref([]);
 const subtotal = computed(() =>
     orders.value.reduce((sum, order) => sum + order.price * order.quantity, 0)
 );
@@ -206,6 +191,30 @@ const tax = computed(() => subtotal.value * 0.11);
 const total = computed(() => subtotal.value + tax.value);
 
 const errorList = computed(() => customerStore.response?.list || {});
+const rowsProduct = ref([]);
+const rowsCustomer = ref([]);
+const selectedCustomerName = ref("");
+const formModel = reactive({
+    m_customer_id: "",
+    product_detail: [],
+});
+
+const getCustomers = async () => {
+    try {
+        startProgress();
+        await customerStore.getCustomers();
+        if (customerStore.customers) {
+            finishProgress();
+            rowsCustomer.value = customerStore.customers || [];
+        } else {
+            failProgress();
+            rowsCustomer.value = [];
+        }
+    } catch (error) {
+        showErrorToast("Cannot get customers");
+        rowsCustomer.value = [];
+    }
+};
 
 const getProducts = async () => {
     try {
@@ -220,11 +229,54 @@ const getProducts = async () => {
         }
     } catch (error) {
         showErrorToast("Cannot get products");
-
-        console.error("Error Response:", error.response);
         rowsProduct.value = [];
     }
 };
+
+const searchData = async () => {
+    await productStore.changePage(1);
+    await getProducts();
+};
+
+const refresh = async () => {
+    productStore.searchQuery = "";
+    await getProducts();
+};
+
+const updateCustomerName = () => {
+    const customer = rowsCustomer.value.find(
+        (customer) => customer.id === formModel.m_customer_id
+    );
+    if (customer) {
+        selectedCustomerName.value = customer.name;
+    }
+};
+
+const addToOrder = (product) => {
+    const existingOrder = orders.value.find((order) => order.id === product.id);
+    if (existingOrder) {
+        existingOrder.quantity++;
+    } else {
+        const newOrder = {
+            id: product.id,
+            name: product.name,
+            photo_url: product.photo_url,
+            price: product.price,
+            quantity: 1,
+            details: product.details || [],
+        };
+        orders.value.push(newOrder);
+    }
+    formModel.product_detail = orders.value.flatMap((order) => {
+        return order.details.map((detail) => ({
+            m_product_id: order.id,
+            m_product_detail_id: detail.id,
+            total_item: order.quantity,
+            price: order.price,
+        }));
+    });
+};
+
 const increaseQuantity = (id) => {
     const order = orders.value.find((order) => order.id === id);
     if (order) {
@@ -240,33 +292,12 @@ const decreaseQuantity = (id) => {
         orders.value = orders.value.filter((order) => order.id !== id);
     }
 };
-const getCustomers = async () => {
-    try {
-        startProgress();
-        await customerStore.getCustomers();
-
-        if (customerStore.customers) {
-            finishProgress();
-            rowsCustomer.value = customerStore.customers || [];
-        } else {
-            failProgress();
-            rowsCustomer.value = [];
-        }
-    } catch (error) {
-        showErrorToast("Cannot get customers");
-        console.error("Error Response:", error.response);
-        rowsCustomer.value = [];
-    }
-};
 
 const handleOrderSubmit = async () => {
-    console.log("Submitting transaction:", formModel);
-
     if (!formModel.m_customer_id) {
         showErrorToast("Please select a customer.");
         return;
     }
-
     const getRandomDetailId = (product) => {
         if (product.details && product.details.length > 0) {
             const randomIndex = Math.floor(
@@ -276,7 +307,6 @@ const handleOrderSubmit = async () => {
         }
         return null;
     };
-
     const orderData = {
         m_customer_id: formModel.m_customer_id,
         product_detail: orders.value
@@ -288,26 +318,20 @@ const handleOrderSubmit = async () => {
             }))
             .filter((order) => order.m_product_detail_id !== null),
     };
-
     if (orderData.product_detail.length === 0) {
         showErrorToast("No valid product details to submit.");
         return;
     }
-
     try {
         startProgress();
         await salesStore.submitOrder(orderData);
-
         if (salesStore.response?.status === 200) {
-            console.log("Status:", salesStore.response?.status);
             finishProgress();
             showSuccessToast("Transaction submitted successfully!");
-
             formModel.m_customer_id = "";
             formModel.product_detail = [];
             orders.value = [];
             selectedCustomerName.value = "";
-
             await getProducts();
         } else {
             failProgress();
@@ -318,71 +342,6 @@ const handleOrderSubmit = async () => {
     } catch (error) {
         showErrorToast("Failed to submit transaction.");
         failProgress();
-        console.error("Transaction submit error:", error);
-    }
-};
-
-const addToOrder = (product) => {
-    const existingOrder = orders.value.find((order) => order.id === product.id);
-
-    if (existingOrder) {
-        existingOrder.quantity++;
-    } else {
-        const newOrder = {
-            id: product.id,
-            name: product.name,
-            photo_url: product.photo_url,
-            price: product.price,
-            quantity: 1,
-            details: product.details || [],
-        };
-        orders.value.push(newOrder);
-    }
-
-    formModel.product_detail = orders.value.flatMap((order) => {
-        return order.details.map((detail) => ({
-            m_product_id: order.id,
-            m_product_detail_id: detail.id,
-            total_item: order.quantity,
-            price: order.price,
-        }));
-    });
-};
-
-const updateCustomerName = () => {
-    const customer = rowsCustomer.value.find(
-        (customer) => customer.id === formModel.m_customer_id
-    );
-    if (customer) {
-        selectedCustomerName.value = customer.name;
-        console.log("Selected Customer:", formModel.m_customer_id, customer);
-    } else {
-        console.error("Customer not found!");
-    }
-};
-
-const searchData = async () => {
-    if (!productStore.searchQuery.trim()) {
-        showErrorToast("Please enter a search query.");
-        return;
-    }
-
-    try {
-        startProgress();
-        await productStore.searchProduct(productStore.searchQuery);
-
-        if (productStore.products.length > 0) {
-            rowsProduct.value = productStore.products;
-        } else {
-            showErrorToast("No products found.");
-            rowsProduct.value = [];
-        }
-
-        finishProgress();
-    } catch (error) {
-        failProgress();
-        showErrorToast("Failed to search products");
-        rowsProduct.value = [];
     }
 };
 

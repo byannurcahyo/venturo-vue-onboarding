@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const useUserStore = defineStore("user", {
     state: () => ({
-        apiUrl: process.env.VUE_APP_APIURL || "http://127.0.0.1:8000",
+        apiUrl: process.env.VUE_APP_APIURL,
         users: [],
         roles: [],
         user: null,
@@ -19,9 +19,10 @@ export const useUserStore = defineStore("user", {
         },
         totalData: 0,
         current: 1,
-        perPage: 5,
+        perPage: 10,
         searchQuery: "",
     }),
+
     actions: {
         openForm(newAction, user) {
             this.modalAction.action = newAction;
@@ -41,6 +42,7 @@ export const useUserStore = defineStore("user", {
                 };
             }
         },
+
         async getRoles() {
             try {
                 const url = `${this.apiUrl}/api/v1/roles`;
@@ -59,11 +61,13 @@ export const useUserStore = defineStore("user", {
             this.current = newPage;
             await this.getUsers();
         },
+
         async searchUsers(query) {
             this.searchQuery = query;
             this.current = 1;
             await this.getUsers();
         },
+
         async addUsers(users) {
             try {
                 const res = await axios.post(
@@ -89,6 +93,7 @@ export const useUserStore = defineStore("user", {
                 await this.getUsers();
             }
         },
+
         async deleteUser(id) {
             this.loading = true;
             try {
@@ -106,6 +111,7 @@ export const useUserStore = defineStore("user", {
                 this.getUsers();
             }
         },
+
         async updateUser(id, users) {
             try {
                 await axios.put(`${this.apiUrl}/api/v1/users/${id}`, users, {
@@ -118,13 +124,13 @@ export const useUserStore = defineStore("user", {
                     message: "User updated successfully",
                 };
             } catch (error) {
-                console.error("Error Response:", error.response);
                 this.response = {
                     status: error.status,
                     message: error.message,
                 };
             }
         },
+
         resetState() {
             this.users = [];
             this.roles = [];

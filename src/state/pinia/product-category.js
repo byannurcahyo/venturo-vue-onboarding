@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const useProductCategoryStore = defineStore("category", {
     state: () => ({
-        apiUrl: process.env.VUE_APP_APIURL || "http://127.0.0.1:8000",
+        apiUrl: process.env.VUE_APP_APIURL,
         categories: [],
         category: null,
         response: {
@@ -18,9 +18,10 @@ export const useProductCategoryStore = defineStore("category", {
         },
         totalData: 0,
         current: 1,
-        perPage: 5,
+        perPage: 10,
         searchQuery: "",
     }),
+
     actions: {
         openForm(newAction, category) {
             this.modalAction.action = newAction;
@@ -45,11 +46,13 @@ export const useProductCategoryStore = defineStore("category", {
             this.current = newPage;
             await this.getCategories();
         },
+
         async searchCategory(query) {
             this.searchQuery = query;
             this.current = 1;
             await this.getCategories();
         },
+
         async addCategory(category) {
             try {
                 const res = await axios.post(
@@ -75,6 +78,7 @@ export const useProductCategoryStore = defineStore("category", {
                 await this.getCategories();
             }
         },
+
         async deleteCategory(id) {
             this.loading = true;
             try {
@@ -92,6 +96,7 @@ export const useProductCategoryStore = defineStore("category", {
                 this.getCategories();
             }
         },
+
         async updateCategory(id, category) {
             try {
                 await axios.put(
@@ -108,13 +113,13 @@ export const useProductCategoryStore = defineStore("category", {
                     message: "Category updated successfully",
                 };
             } catch (error) {
-                console.error("Error Response:", error.response);
                 this.response = {
                     status: error.status,
                     message: error.message,
                 };
             }
         },
+
         resetState() {
             this.categories = [];
             this.response = {

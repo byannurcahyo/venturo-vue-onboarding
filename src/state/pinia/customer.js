@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const useCustomerStore = defineStore("customer", {
     state: () => ({
-        apiUrl: process.env.VUE_APP_APIURL || "http://127.0.0.1:8000",
+        apiUrl: process.env.VUE_APP_APIURL,
         customers: [],
         customer: null,
         response: {
@@ -18,7 +18,7 @@ export const useCustomerStore = defineStore("customer", {
         },
         totalData: 0,
         current: 1,
-        perPage: 5,
+        perPage: 10,
         searchQuery: "",
     }),
 
@@ -46,11 +46,13 @@ export const useCustomerStore = defineStore("customer", {
             this.current = newPage;
             await this.getCustomers();
         },
+
         async searchCustomer(query) {
             this.searchQuery = query;
             this.current = 1;
             await this.getCustomers();
         },
+
         async addCustomer(customers) {
             try {
                 const res = await axios.post(
@@ -76,6 +78,7 @@ export const useCustomerStore = defineStore("customer", {
                 await this.getCustomers();
             }
         },
+
         async deleteCustomer(id) {
             this.loading = true;
             try {
@@ -93,6 +96,7 @@ export const useCustomerStore = defineStore("customer", {
                 this.getCustomers();
             }
         },
+
         async updateCustomer(id, customers) {
             try {
                 await axios.put(
@@ -109,13 +113,13 @@ export const useCustomerStore = defineStore("customer", {
                     message: "Customer updated successfully",
                 };
             } catch (error) {
-                console.error("Error Response:", error.response);
                 this.response = {
                     status: error.status,
                     message: error.message,
                 };
             }
         },
+
         resetState() {
             this.customers = [];
             this.customer = null;

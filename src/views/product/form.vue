@@ -156,7 +156,6 @@
                                 </BFormSelect>
                             </BCol>
                         </BRow>
-
                         <BRow class="mb-3">
                             <label
                                 class="col-md-2 col-form-label"
@@ -227,7 +226,6 @@
                         </BRow>
                     </BForm>
                 </BCol>
-
                 <BCol lg="6" md="12">
                     <div class="table-responsive">
                         <BTableSimple
@@ -333,6 +331,9 @@
                                             <BFormSelectOption value="Topping"
                                                 >Topping</BFormSelectOption
                                             >
+                                            <BFormSelectOption value="Variant"
+                                                >Variant</BFormSelectOption
+                                            >
                                         </BFormSelect>
                                         <template
                                             v-if="
@@ -401,7 +402,6 @@
                     </div>
                 </BCol>
             </BRow>
-
             <BCardFooter>
                 <div class="d-flex justify-content-end">
                     <span>
@@ -426,32 +426,28 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import Layout from "../../layouts/main";
-import PageHeader from "@/components/page-header";
 import { useProductCategoryStore, useProductStore } from "../../state/pinia";
-import { useProgress } from "@/helpers/progress";
-const { startProgress, finishProgress, failProgress } = useProgress();
-import ImageCropper from "@/components/widgets/cropper";
-import { showSuccessToast, showErrorToast } from "@/helpers/alert.js";
 import { useRouter } from "vue-router";
+import { useProgress } from "@/helpers/progress";
+import { showSuccessToast, showErrorToast } from "@/helpers/alert.js";
+import ImageCropper from "@/components/widgets/cropper";
+import PageHeader from "@/components/page-header";
+import Layout from "../../layouts/main";
 
-const router = useRouter();
+const { startProgress, finishProgress, failProgress } = useProgress();
 const categoryStore = useProductCategoryStore();
 const productStore = useProductStore();
-
-const details = ref([
-    {
-        description: "",
-        type: "",
-        price: "",
-        is_added: true,
-    },
-]);
-
+const router = useRouter();
+const statusCode = computed(() => productStore.response.status);
+const errorList = computed(() => productStore.response?.list || {});
+const errorMessage = computed(() => productStore.response?.message || "");
+const productById = computed(() => productStore.productById || {});
+const action = computed(() => productStore.formAction.action);
+const category = computed(() => categoryStore.categories);
 const imageEdit = ref("");
 const imageUrl = ref("");
 const croppedImageUrl = ref("");
-
+const action_button = ref();
 const formModel = reactive({
     id: "",
     name: "",
@@ -464,30 +460,83 @@ const formModel = reactive({
     details: details.value,
     details_deleted: [],
 });
+const details = ref([
+    {
+        description: "",
+        type: "",
+        price: "",
+        is_added: true,
+    },
+]);
 
-const action_button = ref();
-const statusCode = computed(() => productStore.response.status);
-const errorList = computed(() => productStore.response?.list || {});
-const errorMessage = computed(() => productStore.response?.message || "");
-const productById = computed(() => productStore.productById || {});
-const action = computed(() => productStore.formAction.action);
+const getCategory = async () => {
+    await categoryStore.getCategories();
+};
+
+const addEditProduct = async () => {
+    if (formModel.id) {
+        startProgress();
+        await productStore.updateProduct(formModel.id, formModel);
+        if (statusCode.value != 200) {
+            showErrorToast("Failed to update product", errorMessage.value);
+            failProgress();
+        } else {
+            router.push({ name: "product" });
+            showSuccessToast("Product updated successfully!");
+            finishProgress();
+        }
+    } else {
+        startProgress();
+        await productStore.addProduct(formModel);
+        if (statusCode.value != 200) {
+            showErrorToast("Failed to add product", errorMessage.value);
+            failProgress();
+        } else {
+            router.push({ name: "product" });
+            showSuccessToast("Product added successfully!");
+            finishProgress();
+        }
+    }
+};
+
+const clearEditImage = () => {
+    imageEdit.value = "";
+};
+
+const updateCategory = (selectedCategory) => {
+    formModel.m_product_category_id = selectedCategory.id;
+    formModel.product_category_name = selectedCategory.name;
+};
+
+const addDetail = () => {
+    details.value.push({
+        description: "",
+        type: "",
+        price: "",
+        is_added: true,
+    });
+};
+
+const removeRow = (id, index) => {
+    details.value.splice(index, 1);
+    formModel.details_deleted.push({
+        id,
+    });
+};
 
 const watchAction = () => {
     if (action.value === "edit") {
         action_button.value = "Change";
         let product = productById.value;
-
         details.value = product.details.map((detail) => ({
             ...detail,
             is_updated: true,
         }));
-
         if (product.photo_url.includes("PRODUCT")) {
             imageEdit.value = product.photo_url;
         } else {
             imageEdit.value = "";
         }
-
         Object.assign(formModel, {
             id: product.id,
             name: product.name,
@@ -540,61 +589,6 @@ watch(
     },
     { deep: true }
 );
-
-const clearEditImage = () => {
-    imageEdit.value = "";
-};
-const category = computed(() => categoryStore.categories);
-const getCategory = async () => {
-    await categoryStore.getCategories();
-};
-
-const updateCategory = (selectedCategory) => {
-    formModel.m_product_category_id = selectedCategory.id;
-    formModel.product_category_name = selectedCategory.name;
-};
-
-const addDetail = () => {
-    details.value.push({
-        description: "",
-        type: "",
-        price: "",
-        is_added: true,
-    });
-};
-
-const addEditProduct = async () => {
-    if (formModel.id) {
-        startProgress();
-        await productStore.updateProduct(formModel.id, formModel);
-        if (statusCode.value != 200) {
-            showErrorToast("Failed to update product", errorMessage.value);
-            failProgress();
-        } else {
-            router.push({ name: "product" });
-            showSuccessToast("Product updated successfully!");
-            finishProgress();
-        }
-    } else {
-        startProgress();
-        await productStore.addProduct(formModel);
-        if (statusCode.value != 200) {
-            showErrorToast("Failed to add product", errorMessage.value);
-            failProgress();
-        } else {
-            router.push({ name: "product" });
-            showSuccessToast("Product added successfully!");
-            finishProgress();
-        }
-    }
-};
-
-const removeRow = (id, index) => {
-    details.value.splice(index, 1);
-    formModel.details_deleted.push({
-        id,
-    });
-};
 
 onMounted(async () => {
     await getCategory();

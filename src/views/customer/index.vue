@@ -76,7 +76,6 @@
                                                                 formModel.name
                                                             "
                                                         />
-
                                                         <template
                                                             v-if="
                                                                 !!(
@@ -122,7 +121,6 @@
                                                                 formModel.email
                                                             "
                                                         />
-
                                                         <template
                                                             v-if="
                                                                 !!(
@@ -168,7 +166,6 @@
                                                                 formModel.password
                                                             "
                                                         />
-
                                                         <template
                                                             v-if="
                                                                 !!(
@@ -214,7 +211,6 @@
                                                                 formModel.phone
                                                             "
                                                         />
-
                                                         <template
                                                             v-if="
                                                                 !!(
@@ -259,7 +255,6 @@
                                                 placeholder="Enter Address"
                                                 v-model="formModel.address"
                                             ></textarea>
-
                                             <template
                                                 v-if="
                                                     !!(
@@ -284,13 +279,12 @@
                                 <BLink
                                     href="#!"
                                     class="btn btn-light me-1"
-                                    @click="getCustomers"
+                                    @click="refresh"
                                     ><i class="mdi mdi-refresh"></i
                                 ></BLink>
                             </div>
                         </div>
                     </BCardBody>
-
                     <BCardBody class="border-bottom">
                         <BRow class="g-3">
                             <BCol xxl="10" lg="8">
@@ -301,7 +295,6 @@
                                     v-model="customerStore.searchQuery"
                                 />
                             </BCol>
-
                             <BCol xxl="2" lg="4">
                                 <BButton
                                     variant="soft-secondary"
@@ -314,7 +307,6 @@
                             </BCol>
                         </BRow>
                     </BCardBody>
-
                     <BCardBody>
                         <div class="table-responsive">
                             <BTableSimple
@@ -329,7 +321,6 @@
                                         <BTh scope="col"></BTh>
                                     </BTr>
                                 </BThead>
-
                                 <BTbody>
                                     <BTr
                                         v-for="customer in rows"
@@ -385,7 +376,6 @@
                                 </BTbody>
                             </BTableSimple>
                         </div>
-
                         <Pagination
                             :currentPage="customerStore.current"
                             :totalRows="customerStore.totalData"
@@ -401,24 +391,38 @@
 
 <script setup>
 import { ref, onMounted, reactive, computed } from "vue";
-import Layout from "../../layouts/main";
-import PageHeader from "@/components/page-header";
-import Pagination from "@/components/widgets/pagination";
 import { useCustomerStore } from "@/state/pinia";
 import { useProgress } from "@/helpers/progress";
-
-const { startProgress, finishProgress, failProgress } = useProgress();
-import ImageCropper from "@/components/widgets/cropper";
 import {
     showSuccessToast,
     showErrorToast,
     showDeleteConfirmationDialog,
 } from "@/helpers/alert.js";
+import ImageCropper from "@/components/widgets/cropper";
+import PageHeader from "@/components/page-header";
+import Pagination from "@/components/widgets/pagination";
+import Layout from "../../layouts/main";
 
-const rows = ref([]);
+const { startProgress, finishProgress, failProgress } = useProgress();
+const customerStore = useCustomerStore();
+const statusCode = computed(() => customerStore.response.status);
+const errorList = computed(() => customerStore.response?.list || {});
+const errorMessage = computed(() => customerStore.response?.message || "");
 const isOpenForm = ref(false);
 const modalTitle = ref(false);
-const customerStore = useCustomerStore();
+const rows = ref([]);
+const imageUrl = ref("");
+const croppedImageUrl = ref("");
+const formModel = reactive({
+    id: "",
+    name: "",
+    address: "",
+    photo: "",
+    phone: "",
+    email: "",
+    password: "",
+    m_user_id: "",
+});
 
 const getCustomers = async () => {
     startProgress();
@@ -432,29 +436,33 @@ const getCustomers = async () => {
     }
 };
 
-const updatePage = async (page) => {
-    await customerStore.changePage(page);
-    await getCustomers();
-};
-
 const searchData = async () => {
     await customerStore.changePage(1);
     await getCustomers();
 };
 
-const imageUrl = ref("");
-const croppedImageUrl = ref("");
+const refresh = async () => {
+    customerStore.searchQuery = "";
+    await getCustomers();
+};
 
-const formModel = reactive({
-    id: "",
-    name: "",
-    address: "",
-    photo: "",
-    phone: "",
-    email: "",
-    password: "",
-    m_user_id: "",
-});
+const updatePage = async (page) => {
+    await customerStore.changePage(page);
+    await getCustomers();
+};
+
+const deleteCustomer = async (id) => {
+    const confirmed = await showDeleteConfirmationDialog();
+    if (confirmed) {
+        try {
+            await customerStore.deleteCustomer(id);
+            showSuccessToast("Customer deleted successfully");
+            await getCustomers();
+        } catch (error) {
+            showErrorToast("Failed to delete customer", errorMessage.value);
+        }
+    }
+};
 
 const openFormModal = (mode, id = null) => {
     isOpenForm.value = true;
@@ -470,7 +478,6 @@ const openFormModal = (mode, id = null) => {
             formModel.m_user_id = customer.m_user_id;
             formModel.password = customer.password;
             modalTitle.value = "Update Customer";
-
             imageUrl.value = customer.photo || "";
             croppedImageUrl.value = "";
         }
@@ -484,20 +491,13 @@ const openFormModal = (mode, id = null) => {
         formModel.password = "";
         formModel.m_user_id = "";
         modalTitle.value = "Add Customer";
-
         imageUrl.value = "";
         croppedImageUrl.value = "";
     }
 };
 
-const statusCode = computed(() => customerStore.response.status);
-const errorList = computed(() => customerStore.response?.list || {});
-const errorMessage = computed(() => customerStore.response?.message || "");
-
 const saveCustomer = async () => {
     try {
-        console.log("Form Data:", formModel);
-
         if (formModel.id) {
             await customerStore.updateCustomer(formModel.id, formModel);
             if (statusCode.value != 200) {
@@ -509,7 +509,6 @@ const saveCustomer = async () => {
             }
         } else {
             await customerStore.addCustomer(formModel);
-
             if (statusCode.value != 200) {
                 showErrorToast("Failed to add customer", errorMessage.value);
             } else {
@@ -519,21 +518,7 @@ const saveCustomer = async () => {
             }
         }
     } catch (error) {
-        console.error(error);
         showErrorToast("Failed to add customer", errorMessage.value);
-    }
-};
-const deleteCustomer = async (id) => {
-    const confirmed = await showDeleteConfirmationDialog();
-
-    if (confirmed) {
-        try {
-            await customerStore.deleteCustomer(id);
-            showSuccessToast("Customer deleted successfully");
-            await getCustomers();
-        } catch (error) {
-            showErrorToast("Failed to delete customer", errorMessage.value);
-        }
     }
 };
 

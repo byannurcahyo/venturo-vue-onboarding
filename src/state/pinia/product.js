@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const useProductStore = defineStore("product", {
     state: () => ({
-        apiUrl: process.env.VUE_APP_APIURL || "http://127.0.0.1:8000",
+        apiUrl: process.env.VUE_APP_APIURL,
         products: [],
         productById: "",
         response: {
@@ -18,10 +18,11 @@ export const useProductStore = defineStore("product", {
         },
         totalData: 0,
         current: 1,
-        perpage: 5,
+        perpage: 10,
         searchQuery: "",
         maxImageSize: 3 * 1024 * 1024,
     }),
+
     actions: {
         openForm(newAction, product) {
             this.formAction.action = newAction;
@@ -46,11 +47,13 @@ export const useProductStore = defineStore("product", {
             this.current = newPage;
             await this.getProducts();
         },
+
         async searchProduct(query) {
             this.searchQuery = query;
             this.current = 1;
             await this.getProducts();
         },
+
         async addProduct(product) {
             try {
                 const res = await axios.post(
@@ -76,6 +79,7 @@ export const useProductStore = defineStore("product", {
                 await this.getProducts();
             }
         },
+
         async deleteProduct(id) {
             this.loading = true;
             try {
@@ -93,9 +97,9 @@ export const useProductStore = defineStore("product", {
                 this.getProducts();
             }
         },
+
         async updateProduct(id, product) {
             try {
-                console.log(product);
                 await axios.put(
                     `${this.apiUrl}/api/v1/products/${id}`,
                     product,
@@ -110,13 +114,13 @@ export const useProductStore = defineStore("product", {
                     message: "Product updated successfully",
                 };
             } catch (error) {
-                console.error("Error Response:", error.response);
                 this.response = {
                     status: error.status,
                     message: error.message,
                 };
             }
         },
+
         async getProductById(id) {
             try {
                 const res = await axios.get(
@@ -130,6 +134,7 @@ export const useProductStore = defineStore("product", {
                 };
             }
         },
+
         resetState() {
             this.products = [];
             this.productById = "";

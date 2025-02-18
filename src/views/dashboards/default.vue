@@ -6,16 +6,15 @@ import PageHeader from "@/components/page-header";
  * Dashboard Component
  */
 export default {
-  components: {
-    Layout,
-    PageHeader,
-  },
-}
+    components: {
+        Layout,
+        PageHeader,
+    },
+};
 </script>
 
 <template>
-  <Layout>
-    <PageHeader title="Default" pageTitle="Dashboards" />
-
-  </Layout>
+    <Layout>
+        <PageHeader title="Default" pageTitle="Dashboards" />
+    </Layout>
 </template>

@@ -1,13 +1,13 @@
 <template>
     <Layout>
-        <PageHeader title="Produk" pageTitle="Produk" />
+        <PageHeader title="Products List" pageTitle="Products" />
         <BRow>
             <BCol lg="12">
                 <BCard no-body>
                     <BCardBody class="border-bottom">
                         <div class="d-flex align-items-center">
                             <BCardTitle class="mb-0 flex-grow-1"
-                                >Produk List</BCardTitle
+                                >Product</BCardTitle
                             >
                             <div class="flex-shrink-0">
                                 <BButton
@@ -18,7 +18,7 @@
                                 <BLink
                                     href="#!"
                                     class="btn btn-light me-1"
-                                    @click="getProducts"
+                                    @click="refresh"
                                     ><i class="mdi mdi-refresh"></i
                                 ></BLink>
                             </div>
@@ -43,7 +43,7 @@
                                     class="w-100"
                                 >
                                     <i class="mdi mdi-magnify align-middle"></i>
-                                    Cari
+                                    Search
                                 </BButton>
                             </BCol>
                         </BRow>
@@ -152,22 +152,22 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import Layout from "../../layouts/main";
-import PageHeader from "@/components/page-header";
-import Pagination from "@/components/widgets/pagination";
-import { useProgress } from "@/helpers/progress";
 import { useProductStore } from "../../state/pinia";
+import { useRouter } from "vue-router";
+import { useProgress } from "@/helpers/progress";
 import {
     showSuccessToast,
     showErrorToast,
     showDeleteConfirmationDialog,
 } from "@/helpers/alert.js";
-import { useRouter } from "vue-router";
+import PageHeader from "@/components/page-header";
+import Pagination from "@/components/widgets/pagination";
+import Layout from "../../layouts/main";
 
-const rows = ref([]);
-const router = useRouter();
 const { startProgress, finishProgress, failProgress } = useProgress();
 const productStore = useProductStore();
+const router = useRouter();
+const rows = ref([]);
 
 const getProducts = async () => {
     startProgress();
@@ -181,26 +181,18 @@ const getProducts = async () => {
     }
 };
 
-const deleteProduct = async (id) => {
-    const confirmed = await showDeleteConfirmationDialog();
-    if (confirmed) {
-        try {
-            await productStore.deleteProduct(id);
-            showSuccessToast("Produk berhasil dihapus");
-            await getProducts();
-        } catch (error) {
-            showErrorToast("Terjadi kesalahan saat menghapus produk");
-        }
-    }
+const searchData = async () => {
+    await productStore.changePage(1);
+    await getProducts();
+};
+
+const refresh = async () => {
+    productStore.searchQuery = "";
+    await getProducts();
 };
 
 const updatePage = async (page) => {
     await productStore.changePage(page);
-    await getProducts();
-};
-
-const searchData = async () => {
-    await productStore.changePage(1);
     await getProducts();
 };
 
@@ -213,6 +205,19 @@ const editProduct = async (id) => {
     productStore.openForm("edit");
     router.push({ name: "product-form" });
     await productStore.getProductById(id);
+};
+
+const deleteProduct = async (id) => {
+    const confirmed = await showDeleteConfirmationDialog();
+    if (confirmed) {
+        try {
+            await productStore.deleteProduct(id);
+            showSuccessToast("Product deleted successfully");
+            await getProducts();
+        } catch (error) {
+            showErrorToast("Failed to delete product");
+        }
+    }
 };
 
 onMounted(async () => {

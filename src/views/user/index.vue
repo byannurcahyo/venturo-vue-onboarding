@@ -255,7 +255,7 @@
                                 <BLink
                                     href="#!"
                                     class="btn btn-light me-1"
-                                    @click="getUsers"
+                                    @click="refresh"
                                     ><i class="mdi mdi-refresh"></i
                                 ></BLink>
                             </div>
@@ -280,7 +280,7 @@
                                     class="w-100"
                                 >
                                     <i class="mdi mdi-magnify align-middle"></i>
-                                    Cari
+                                    Search
                                 </BButton>
                             </BCol>
                         </BRow>
@@ -363,25 +363,37 @@
 
 <script setup>
 import { ref, onMounted, reactive, computed } from "vue";
-import Layout from "../../layouts/main";
-import PageHeader from "@/components/page-header";
-import Pagination from "@/components/widgets/pagination";
 import { useUserStore } from "@/state/pinia";
 import { useProgress } from "@/helpers/progress";
-
-const { startProgress, finishProgress, failProgress } = useProgress();
-import ImageCropper from "@/components/widgets/cropper";
 import {
     showSuccessToast,
     showErrorToast,
     showDeleteConfirmationDialog,
 } from "@/helpers/alert.js";
+import ImageCropper from "@/components/widgets/cropper";
+import PageHeader from "@/components/page-header";
+import Pagination from "@/components/widgets/pagination";
+import Layout from "../../layouts/main";
 
-const roles = ref([]);
-const rows = ref([]);
+const { startProgress, finishProgress, failProgress } = useProgress();
+const userStore = useUserStore();
+const statusCode = computed(() => userStore.response.status);
+const errorList = computed(() => userStore.response?.list || {});
+const errorMessage = computed(() => userStore.response?.message || "");
 const isOpenForm = ref(false);
 const modalTitle = ref(false);
-const userStore = useUserStore();
+const rows = ref([]);
+const roles = ref([]);
+const imageUrl = ref("");
+const croppedImageUrl = ref("");
+const formModel = reactive({
+    id: "",
+    name: "",
+    email: "",
+    password: "",
+    photo: "",
+    m_user_roles_id: "",
+});
 
 const getUsers = async () => {
     startProgress();
@@ -407,27 +419,33 @@ const getRoles = async () => {
     }
 };
 
-const updatePage = async (page) => {
-    await userStore.changePage(page);
-    await getUsers();
-};
-
 const searchData = async () => {
     await userStore.changePage(1);
     await getUsers();
 };
 
-const imageUrl = ref("");
-const croppedImageUrl = ref("");
+const refresh = async () => {
+    userStore.searchQuery = "";
+    await getUsers();
+};
 
-const formModel = reactive({
-    id: "",
-    name: "",
-    email: "",
-    password: "",
-    photo: "",
-    m_user_roles_id: "",
-});
+const updatePage = async (page) => {
+    await userStore.changePage(page);
+    await getUsers();
+};
+
+const deleteUser = async (id) => {
+    const confirmed = await showDeleteConfirmationDialog();
+    if (confirmed) {
+        try {
+            await userStore.deleteUser(id);
+            showSuccessToast("User deleted successfully!");
+            await getUsers();
+        } catch (error) {
+            showErrorToast("Failed to deleted user");
+        }
+    }
+};
 
 const openFormModal = (mode, id = null) => {
     isOpenForm.value = true;
@@ -441,7 +459,6 @@ const openFormModal = (mode, id = null) => {
             formModel.photo = user.photo;
             formModel.m_user_roles_id = user.m_user_roles_id;
             modalTitle.value = "Update User";
-
             imageUrl.value = user.photo || "";
             croppedImageUrl.value = "";
         }
@@ -453,20 +470,13 @@ const openFormModal = (mode, id = null) => {
         formModel.photo = "";
         formModel.m_user_roles_id = "";
         modalTitle.value = "Add User";
-
         imageUrl.value = "";
         croppedImageUrl.value = "";
     }
 };
 
-const statusCode = computed(() => userStore.response.status);
-const errorList = computed(() => userStore.response?.list || {});
-const errorMessage = computed(() => userStore.response?.message || "");
-
 const saveUser = async () => {
     try {
-        console.log("Form Data:", formModel);
-
         if (formModel.id) {
             await userStore.updateUser(formModel.id, formModel);
             if (statusCode.value != 200) {
@@ -478,7 +488,6 @@ const saveUser = async () => {
             }
         } else {
             await userStore.addUsers(formModel);
-
             if (statusCode.value != 200) {
                 showErrorToast("Failed to add user", errorMessage.value);
             } else {
@@ -488,21 +497,7 @@ const saveUser = async () => {
             }
         }
     } catch (error) {
-        console.error(error);
         showErrorToast("Failed to add user", errorMessage.value);
-    }
-};
-const deleteUser = async (id) => {
-    const confirmed = await showDeleteConfirmationDialog();
-
-    if (confirmed) {
-        try {
-            await userStore.deleteUser(id);
-            showSuccessToast("User deleted successfully!");
-            await getUsers();
-        } catch (error) {
-            showErrorToast("Failed to deleted user");
-        }
     }
 };
 

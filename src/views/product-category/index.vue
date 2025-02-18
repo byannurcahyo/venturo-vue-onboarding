@@ -1,13 +1,16 @@
 <template>
     <Layout>
-        <PageHeader title="Kategori Produk" pageTitle="Kategori Produk" />
+        <PageHeader
+            title="Product Categories List"
+            pageTitle="Product Categories"
+        />
         <BRow>
             <BCol lg="12">
                 <BCard no-body>
                     <BCardBody class="border-bottom">
                         <div class="d-flex align-items-center">
                             <BCardTitle class="mb-0 flex-grow-1"
-                                >Kategori Produk List</BCardTitle
+                                >Product Category</BCardTitle
                             >
                             <div class="flex-shrink-0">
                                 <BButton
@@ -81,6 +84,12 @@
                                         </BForm>
                                     </BCol>
                                 </BModal>
+                                <BLink
+                                    href="#!"
+                                    class="btn btn-light me-1"
+                                    @click="refresh"
+                                    ><i class="mdi mdi-refresh"></i
+                                ></BLink>
                             </div>
                         </div>
                     </BCardBody>
@@ -102,7 +111,7 @@
                                     class="w-100"
                                 >
                                     <i class="mdi mdi-magnify align-middle"></i>
-                                    Cari
+                                    Search
                                 </BButton>
                             </BCol>
                         </BRow>
@@ -183,23 +192,32 @@
 
 <script setup>
 import { ref, onMounted, reactive, computed } from "vue";
-import Layout from "../../layouts/main";
-import PageHeader from "@/components/page-header";
-import Pagination from "@/components/widgets/pagination";
 import { useProductCategoryStore } from "@/state/pinia";
 import { useProgress } from "@/helpers/progress";
-
-const { startProgress, finishProgress, failProgress } = useProgress();
+import { BLink } from "bootstrap-vue-next";
 import {
     showSuccessToast,
     showErrorToast,
     showDeleteConfirmationDialog,
 } from "@/helpers/alert.js";
+import PageHeader from "@/components/page-header";
+import Pagination from "@/components/widgets/pagination";
+import Layout from "../../layouts/main";
 
-const rows = ref([]);
+const { startProgress, finishProgress, failProgress } = useProgress();
+const productCategoryStore = useProductCategoryStore();
+const statusCode = computed(() => productCategoryStore.response.status);
+const errorList = computed(() => productCategoryStore.response?.list || {});
+const errorMessage = computed(
+    () => productCategoryStore.response?.message || ""
+);
 const isOpenForm = ref(false);
 const modalTitle = ref(false);
-const productCategoryStore = useProductCategoryStore();
+const rows = ref([]);
+const formModel = reactive({
+    id: "",
+    name: "",
+});
 
 const getCategories = async () => {
     startProgress();
@@ -213,20 +231,33 @@ const getCategories = async () => {
     }
 };
 
-const updatePage = async (page) => {
-    await productCategoryStore.changePage(page);
-    await getCategories();
-};
-
 const searchData = async () => {
     await productCategoryStore.changePage(1);
     await getCategories();
 };
 
-const formModel = reactive({
-    id: "",
-    name: "",
-});
+const refresh = async () => {
+    productCategoryStore.searchQuery = "";
+    await getCategories();
+};
+
+const updatePage = async (page) => {
+    await productCategoryStore.changePage(page);
+    await getCategories();
+};
+
+const deleteCategory = async (id) => {
+    const confirmed = await showDeleteConfirmationDialog();
+    if (confirmed) {
+        try {
+            await productCategoryStore.deleteCategory(id);
+            showSuccessToast("Category deleted successfully");
+            await getCategories();
+        } catch (error) {
+            showErrorToast("Failed to delete category");
+        }
+    }
+};
 
 const openFormModal = (mode, id = null) => {
     isOpenForm.value = true;
@@ -244,16 +275,8 @@ const openFormModal = (mode, id = null) => {
     }
 };
 
-const statusCode = computed(() => productCategoryStore.response.status);
-const errorList = computed(() => productCategoryStore.response?.list || {});
-const errorMessage = computed(
-    () => productCategoryStore.response?.message || ""
-);
-
 const saveCategory = async () => {
     try {
-        console.log("Form Data:", formModel);
-
         if (formModel.id) {
             await productCategoryStore.updateCategory(formModel.id, formModel);
             if (statusCode.value != 200) {
@@ -265,7 +288,6 @@ const saveCategory = async () => {
             }
         } else {
             await productCategoryStore.addCategory(formModel);
-
             if (statusCode.value != 200) {
                 showErrorToast("Failed to add category", errorMessage.value);
             } else {
@@ -275,21 +297,7 @@ const saveCategory = async () => {
             }
         }
     } catch (error) {
-        console.error(error);
         showErrorToast("Failed to add category", errorMessage.value);
-    }
-};
-const deleteCategory = async (id) => {
-    const confirmed = await showDeleteConfirmationDialog();
-
-    if (confirmed) {
-        try {
-            await productCategoryStore.deleteCategory(id);
-            showSuccessToast("Category deleted successfully");
-            await getCategories();
-        } catch (error) {
-            showErrorToast("Failed to delete category");
-        }
     }
 };
 
