@@ -43,6 +43,18 @@ export default [
         component: () => import("../views/transaksi"),
     },
     {
+        path: "/menu-sales-report",
+        name: "menu-sales-report",
+        meta: { title: "Master Menu Sales Report", authRequired: false },
+        component: () => import("../views/report/menu.vue"),
+    },
+    {
+        path: "/customer-sales-report",
+        name: "customer-sales-report",
+        meta: { title: "Master Customer Sales Report", authRequired: false },
+        component: () => import("../views/report/customer.vue"),
+    },
+    {
         path: "/login",
         name: "login",
         component: () => import("../views/account/login"),
